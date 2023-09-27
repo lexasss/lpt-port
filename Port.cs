@@ -11,8 +11,8 @@ internal readonly struct Port
 
     public override string ToString()
     {
-        string range = "0x" + Convert.ToString(From, 16).PadLeft(2, '0') + " - 0x" + Convert.ToString(To, 16).PadLeft(2, '0');
-        return $"{Name} ({From:X2}{range.ToUpper()})";
+        string range = $"0x{From:X4} - 0x{To:X4}";
+        return $"{Name} ({range})";
     }
 
     [DllImport("inpout32.dll", EntryPoint = "IsInpOutDriverOpen")]
