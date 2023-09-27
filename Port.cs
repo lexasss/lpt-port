@@ -15,26 +15,30 @@ internal readonly struct Port
         return $"{Name} ({From:X2}{range.ToUpper()})";
     }
 
-    [DllImport("inpout32.dll", EntryPoint = "Out32")]
-    public static extern void Write(int adress, short value); // decimal
-
-    [DllImport("inpout32.dll", EntryPoint = "Inp32")]
-    public static extern byte Read(int address);
-
     [DllImport("inpout32.dll", EntryPoint = "IsInpOutDriverOpen")]
     public static extern uint IsAvailable();
 
-    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUshort")]
-    public static extern void WriteUint16(short PortAddress, ushort Data);
+    [DllImport("inpout32.dll", EntryPoint = "Inp32")]
+    public static extern short Read(int address);
+    [DllImport("inpout32.dll", EntryPoint = "Out32")]
+    public static extern void Write(int adress, short value); // decimal
+
+    [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUchar")]
+    public static extern byte ReadUInt8(short PortAddress);
+    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUchar")]
+    public static extern void WriteUint8(short PortAddress, byte Data);
+
     [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUshort")]
     public static extern ushort ReadUInt16(short PortAddress);
+    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUshort")]
+    public static extern void WriteUint16(short PortAddress, ushort Data);
 
     [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUlong")]
     public static extern void WriteUInt32(int PortAddress, uint Data);
     [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUlong")]
     public static extern uint ReadUInt32(int PortAddress);
 
-    public byte Read() => Read(From);
+    public short Read() => Read(From);
     public void Write(short value) => Write(From, value);
 
     public static Port[] GetAll()

@@ -51,7 +51,7 @@ if (lptPorts.Length > 1)
 }
 
 var port = lptPorts[portId];
-byte portValue = 0;
+short portValue = 0;
 
 var thread = new Thread(() =>
 {
