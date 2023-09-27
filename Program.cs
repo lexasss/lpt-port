@@ -2,12 +2,13 @@
 
 class Program
 {
-    enum Operation { Read, Write255 }
+    enum Operation { Read, Write255, WriteAndCheck }
 
     static readonly Dictionary<Operation, Action<object?>> _actions = new()
     {
         { Operation.Read, Listen },
         { Operation.Write255, Write255 },
+        { Operation.WriteAndCheck, WriteAndCheck },
     };
 
     public static void Main()
@@ -203,6 +204,54 @@ class Program
                         Port.Write(i, value);
                     }
                     Console.WriteLine(value);
+                    Thread.Sleep(200);
+
+                    if (++value > 255)
+                        break;
+                }
+
+                Console.WriteLine("Done. Press any key to exit . . .");
+            }
+            catch (ThreadInterruptedException) { }
+        }
+    }
+
+    static void WriteAndCheck(object? param)
+    {
+        if (param is Port port)
+        {
+            try
+            {
+                short value = 0;
+                short[] portValue = new short[port.To - port.From + 1];
+
+                Console.WriteLine("Writing to all ports and checking the value:");
+
+                while (Thread.CurrentThread.ThreadState == ThreadState.Running)
+                {
+                    Console.WriteLine($"===> {value}");
+                    for (int i = port.From; i <= port.To; i++)
+                    {
+                        Port.Write(i, value);
+                        Thread.Sleep(10);
+                        var currentPortValue = Port.Read(i);
+                        if (value != currentPortValue)
+                        {
+                            if (portValue[i - port.From] != currentPortValue)
+                            {
+                                Console.WriteLine($"  0x{i:x4} => sent '{value}' but it is '{currentPortValue}'");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"  0x{i:x4} => still '{currentPortValue}'");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"  0x{i:x4} => OK");
+                        }
+                        portValue[i - port.From] = currentPortValue;
+                    }
                     Thread.Sleep(200);
 
                     if (++value > 255)
