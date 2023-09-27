@@ -1,9 +1,20 @@
-﻿using LPTReader;
+﻿using LptPortSniffer;
 
-Port[] lptPorts = PortReader.GetParallelPorts();
+try
+{
+    if (Port.IsAvailable() == 0)
+        throw new Exception("LPT port IO is not available.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.Message);
+    return;
+}
+
+Port[] lptPorts = Port.GetAll();
 if (lptPorts.Length == 0)
 {
-    Console.WriteLine("No LPT ports found. Exiting.");
+    Console.WriteLine("No LPT ports found.");
     return;
 }
 
@@ -40,13 +51,13 @@ if (lptPorts.Length > 1)
 }
 
 var port = lptPorts[portId];
-short portValue = 0;
+byte portValue = 0;
 
 var thread = new Thread(() =>
 {
     while (Thread.CurrentThread.ThreadState == ThreadState.Running)
     {
-        var currentPortValue = PortReader.Inp32(port.From);
+        var currentPortValue = port.Read();
         if (currentPortValue != portValue)
         {
             portValue = currentPortValue;

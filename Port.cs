@@ -1,28 +1,43 @@
 ﻿using System.Management;
 using System.Runtime.InteropServices;
 
-namespace LPTReader;
+namespace LptPortSniffer;
 
 internal readonly struct Port
 {
     public string Name { get; init; }
     public int From { get; init; }
     public int To { get; init; }
+
     public override string ToString()
     {
         string range = "0x" + Convert.ToString(From, 16).PadLeft(2, '0') + " - 0x" + Convert.ToString(To, 16).PadLeft(2, '0');
         return $"{Name} ({From:X2}{range.ToUpper()})";
     }
-}
 
-internal static class PortReader
-{
-    [DllImport("Inpout32.dll")]
-    public static extern short Inp32(int address);
     [DllImport("inpout32.dll", EntryPoint = "Out32")]
-    public static extern void Output(int adress, int value); // decimal
+    public static extern void Write(int adress, short value); // decimal
 
-    public static Port[] GetParallelPorts()
+    [DllImport("inpout32.dll", EntryPoint = "Inp32")]
+    public static extern byte Read(int address);
+
+    [DllImport("inpout32.dll", EntryPoint = "IsInpOutDriverOpen")]
+    public static extern uint IsAvailable();
+
+    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUshort")]
+    public static extern void WriteUint16(short PortAddress, ushort Data);
+    [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUshort")]
+    public static extern ushort ReadUInt16(short PortAddress);
+
+    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUlong")]
+    public static extern void WriteUInt32(int PortAddress, uint Data);
+    [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUlong")]
+    public static extern uint ReadUInt32(int PortAddress);
+
+    public byte Read() => Read(From);
+    public void Write(short value) => Write(From, value);
+
+    public static Port[] GetAll()
     {
         var ports = new List<Port>();
         ManagementObjectSearcher lptPortSearcher;
@@ -32,7 +47,7 @@ internal static class PortReader
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Exception when retrieving Win32_ParallelPort: {ex}");
+            Console.WriteLine($"Exception when retrieving Win32_ParallelPort: {ex.Message}");
             return ports.ToArray();
         }
 
@@ -45,7 +60,7 @@ internal static class PortReader
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception when retrieving Win32_PnPAllocatedResource for {lptPort.ClassPath}: {ex}");
+                Console.WriteLine($"Exception when retrieving Win32_PnPAllocatedResource for {lptPort.ClassPath}: {ex.Message}");
                 continue;
             }
 
@@ -86,7 +101,7 @@ internal static class PortReader
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Exception when retrieving Win32_PortResource for {pnp.ClassPath}: {ex}");
+                        Console.WriteLine($"Exception when retrieving Win32_PortResource for {pnp.ClassPath}: {ex.Message}");
                         continue;
                     }
 
