@@ -51,7 +51,7 @@ class Program
 
     static Port[]? GetPorts()
     {
-        Port[] lptPorts = Port.GetAll();
+        Port[] lptPorts = Port.GetPorts();
         if (lptPorts.Length == 0)
         {
             Console.WriteLine("No LPT ports found.");

@@ -58,7 +58,7 @@ internal class Port
 
     #endregion
 
-    public static Port[] GetAll()
+    public static Port[] GetPorts()
     {
         var ports = new List<Port>();
         ManagementObjectSearcher lptPortSearcher;
