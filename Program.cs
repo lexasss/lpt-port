@@ -2,13 +2,13 @@
 
 class Program
 {
-    enum Operation { Read, Write255, WriteAndCheck }
+    enum Operation { ReadWholeRange, ReadPins, WriteFrom0To255 }
 
     static readonly Dictionary<Operation, Action<object?>> _actions = new()
     {
-        { Operation.Read, Listen },
-        { Operation.Write255, Write255 },
-        { Operation.WriteAndCheck, WriteAndCheck },
+        { Operation.ReadWholeRange, ReadWholeRange },
+        { Operation.ReadPins, ReadPins },
+        { Operation.WriteFrom0To255, WriteFrom0To255 },
     };
 
     public static void Main()
@@ -28,7 +28,7 @@ class Program
         if ((operation = ChooseOperation()) is null)
             return;
 
-        LoopPortOperation((Port)port, (Operation)operation);
+        LoopPortOperation(port, (Operation)operation);
     }
 
     // Functions
@@ -148,119 +148,121 @@ class Program
         thread.Join();
     }
 
-    static void Listen(object? param)
+    #region Actions
+
+    static void ReadWholeRange(object? param)
     {
-        if (param is Port port)
+        if (param is not Port port)
+            return;
+
+        try
         {
-            try
+            ulong cycle = 0;
+            short[] portValues = new short[port.ToAddress - port.FromAddress + 1];
+            while (Thread.CurrentThread.ThreadState == ThreadState.Running)
             {
-                ulong cycle = 0;
-                short[] portValue = new short[port.To - port.From + 1];
-                while (Thread.CurrentThread.ThreadState == ThreadState.Running)
+                bool hasNewValue = false;
+                for (int i = port.FromAddress; i <= port.ToAddress; i++)
                 {
-                    bool hasNewValue = false;
-                    for (int i = port.From; i <= port.To; i++)
+                    var currentPortValue = Port.Read(i);
+                    if (portValues[i - port.FromAddress] != currentPortValue)
                     {
-                        var currentPortValue = Port.Read(i);
-                        if (portValue[i - port.From] != currentPortValue)
-                        {
-                            portValue[i - port.From] = currentPortValue;
-                            hasNewValue = true;
-                        }
+                        portValues[i - port.FromAddress] = currentPortValue;
+                        hasNewValue = true;
                     }
-
-                    if (hasNewValue)
-                    {
-                        if (cycle > 0)
-                        {
-                            Console.WriteLine($"=== New value(s) on cycle {cycle} ===");
-                        }
-                        for (int i = port.From; i <= port.To; i++)
-                        {
-                            Console.WriteLine($"{i:x4} => {portValue[i - port.From]}");
-                        }
-                    }
-
-                    cycle++;
-                    Thread.Sleep(10);
-                }
-            }
-            catch (ThreadInterruptedException) { }
-        }
-    }
-
-    static void Write255(object? param)
-    {
-        if (param is Port port)
-        {
-            try
-            {
-                short value = 0;
-                Console.WriteLine("Writing to all ports:");
-                while (Thread.CurrentThread.ThreadState == ThreadState.Running)
-                {
-                    for (int i = port.From; i <= port.To; i++)
-                    {
-                        Port.Write(i, value);
-                    }
-                    Console.WriteLine(value);
-                    Thread.Sleep(200);
-
-                    if (++value > 255)
-                        break;
                 }
 
-                Console.WriteLine("Done. Press any key to exit . . .");
+                if (hasNewValue)
+                {
+                    if (cycle > 0)
+                    {
+                        Console.WriteLine($"=== New value(s) on cycle {cycle} ===");
+                    }
+                    for (int i = port.FromAddress; i <= port.ToAddress; i++)
+                    {
+                        Console.WriteLine($"{i:x4} => {portValues[i - port.FromAddress]}");
+                    }
+                }
+
+                cycle++;
+                Thread.Sleep(10);
             }
-            catch (ThreadInterruptedException) { }
         }
+        catch (ThreadInterruptedException) { }
     }
 
-    static void WriteAndCheck(object? param)
+    static void ReadPins(object? param)
     {
-        if (param is Port port)
+        if (param is not Port port)
+            return;
+
+        try
         {
-            try
+            ulong cycle = 0;
+            int pinValues = 0;
+            while (Thread.CurrentThread.ThreadState == ThreadState.Running)
             {
-                short value = 0;
-                short[] portValue = new short[port.To - port.From + 1];
-
-                Console.WriteLine("Writing to all ports and checking the value:");
-
-                while (Thread.CurrentThread.ThreadState == ThreadState.Running)
+                var currentPinValues = port.ReadAll();
+                if (pinValues != currentPinValues)
                 {
-                    Console.WriteLine($"===> {value}");
-                    for (int i = port.From; i <= port.To; i++)
+                    if (cycle > 0)
                     {
-                        Port.Write(i, value);
-                        Thread.Sleep(10);
-                        var currentPortValue = Port.Read(i);
-                        if (value != currentPortValue)
+                        Console.WriteLine($"=== New value(s) on cycle {cycle} ===");
+                    }
+                    for (int i = 0; i < 20; i++)
+                    {
+                        var mask = 2 ^ i;
+                        if ((pinValues & mask) != (currentPinValues & mask))
                         {
-                            if (portValue[i - port.From] != currentPortValue)
+                            var type = i switch
                             {
-                                Console.WriteLine($"  0x{i:x4} => sent '{value}' but it is '{currentPortValue}'");
-                            }
-                            else
+                                <= 7 => 'D',
+                                >= 10 and <= 16 => 'S',
+                                _ => 'C'
+                            };
+                            var index = i switch
                             {
-                                Console.WriteLine($"  0x{i:x4} => still '{currentPortValue}'");
-                            }
+                                <= 7 => i,
+                                >= 10 and <= 16 => i - 10,
+                                _ => i - 16
+                            };
+                            var value = (currentPinValues & mask) > 0 ? "ON" : "OFF";
+                            Console.WriteLine($"{type}{index} = {value}");
                         }
-                        else
-                        {
-                            Console.WriteLine($"  0x{i:x4} => OK");
-                        }
-                        portValue[i - port.From] = currentPortValue;
                     }
-                    Thread.Sleep(200);
-
-                    if (++value > 255)
-                        break;
+                    pinValues = currentPinValues;
                 }
 
-                Console.WriteLine("Done. Press any key to exit . . .");
+                cycle++;
+                Thread.Sleep(10);
             }
-            catch (ThreadInterruptedException) { }
         }
+        catch (ThreadInterruptedException) { }
     }
+
+    static void WriteFrom0To255(object? param)
+    {
+        if (param is not Port port)
+            return;
+
+        try
+        {
+            short value = 0;
+            Console.WriteLine("Writing to DATA bus from 0 to 255:");
+            while (Thread.CurrentThread.ThreadState == ThreadState.Running)
+            {
+                port.WriteData(value);
+                Console.WriteLine(value);
+                Thread.Sleep(200);
+
+                if (++value > 255)
+                    break;
+            }
+
+            Console.WriteLine("Done. Press any key to exit . . .");
+        }
+        catch (ThreadInterruptedException) { }
+    }
+
+    #endregion
 }
