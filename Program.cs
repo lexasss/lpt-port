@@ -202,32 +202,27 @@ class Program
             int pinValues = 0;
             while (Thread.CurrentThread.ThreadState == ThreadState.Running)
             {
-                var currentPinValues = port.ReadAll();
+                var currentPinValues = port.ReadAllAsPins();
                 if (pinValues != currentPinValues)
                 {
-                    if (cycle > 0)
-                    {
-                        Console.WriteLine($"=== New value(s) on cycle {cycle} ===");
-                    }
+                    Console.WriteLine($"=== Value 0x{currentPinValues:x4} (binary = 0x{port.ReadAll():x4}) on cycle {cycle} ===");
                     for (int i = 0; i < 20; i++)
                     {
-                        var mask = 2 ^ i;
-                        if ((pinValues & mask) != (currentPinValues & mask))
+                        var mask = 1 << i;
+                        if ((pinValues & mask) != (currentPinValues & mask) || cycle == 0)
                         {
-                            var type = i switch
+                            var (type, index) = i switch
                             {
-                                <= 7 => 'D',
-                                >= 10 and <= 16 => 'S',
-                                _ => 'C'
+                                <= 7 => ('D', i),
+                                >= 11 and <= 15 => ('S', i - 8),
+                                >= 16 => ('C', i - 16),
+                                _ => ('\0', 0)
                             };
-                            var index = i switch
+                            if (type != '\0')
                             {
-                                <= 7 => i,
-                                >= 10 and <= 16 => i - 10,
-                                _ => i - 16
-                            };
-                            var value = (currentPinValues & mask) > 0 ? "ON" : "OFF";
-                            Console.WriteLine($"{type}{index} = {value}");
+                                var value = (currentPinValues & mask) > 0 ? "ON" : "OFF";
+                                Console.WriteLine($"{type}{index} = {value} [{Port.PinName(i)}]");
+                            }
                         }
                     }
                     pinValues = currentPinValues;

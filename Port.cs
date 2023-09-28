@@ -31,6 +31,12 @@ internal class Port
     /// <returns>0b XX XX XX XX C3 C2 C1 C0 S7 S6 S5 S4 S3 XX XX XX D7 D6 D5 D4 D3 D2 D1 D0</returns>
     public int ReadAll() => (ReadControl() << 16) | ((ReadStatus() & 0xFF) << 8) | (ReadData() & 0xFF);
 
+    /// <summary>
+    /// Same as <see cref="ReadAll"/> but with properly inversed pin vlaues
+    /// </summary>
+    /// <returns></returns>
+    public int ReadAllAsPins() => ReadAll() ^ 0x000B8000;
+
     #region Static IO
 
     [DllImport("inpout32.dll", EntryPoint = "IsInpOutDriverOpen")]
@@ -150,6 +156,36 @@ internal class Port
 
         return ports.ToArray();
     }
+
+    public static string PinID(int bit) => bit switch
+    {
+        <= 7 => $"D{bit}",
+        >= 11 and <= 15 => $"S{bit - 8}",
+        >= 16 => $"C{bit - 16}",
+        _ => ""
+    };
+
+    public static string PinName(int bit) => bit switch
+    {
+        0 => "Data0",
+        1 => "Data1",
+        2 => "Data2",
+        3 => "Data3",
+        4 => "Data4",
+        5 => "Data5",
+        6 => "Data6",
+        7 => "Data7",
+        11 => "Error",
+        12 => "Select",
+        13 => "PaperEnd",
+        14 => "Ack",
+        15 => "Busy",
+        16 => "Strobe",
+        17 => "AutoFeed",
+        18 => "Init",
+        19 => "SelectInput",
+        _ => ""
+    };
 
     #region DATA pins
 
@@ -301,11 +337,11 @@ internal class Port
 
     private static bool GetBit(int address, byte bit)
     {
-        return (Read(address) & (2 ^ bit)) > 0;
+        return (Read(address) & (1 << bit)) > 0;
     }
     private static void SetBit(int address, byte bit, bool value)
     {
-        short mask = (short)(2 ^ bit);
+        short mask = (short)(1 << bit);
         var current = Read(address);
         Write(address, (short)(value ? current | mask : current & (~mask)));
     }
