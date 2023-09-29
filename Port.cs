@@ -32,7 +32,7 @@ internal class Port
     public int ReadAll() => (ReadControl() << 16) | ((ReadStatus() & 0xFF) << 8) | (ReadData() & 0xFF);
 
     /// <summary>
-    /// Same as <see cref="ReadAll"/> but with properly inversed pin vlaues
+    /// Same as <see cref="ReadAll"/> but with properly inversed pin values
     /// </summary>
     /// <returns></returns>
     public int ReadAllAsPins() => ReadAll() ^ 0x000B8000;
@@ -157,7 +157,7 @@ internal class Port
         return ports.ToArray();
     }
 
-    public static string PinID(int bit) => bit switch
+    public static string PinID(byte bit) => bit switch
     {
         <= 7 => $"D{bit}",
         >= 11 and <= 15 => $"S{bit - 8}",
@@ -165,7 +165,7 @@ internal class Port
         _ => ""
     };
 
-    public static string PinName(int bit) => bit switch
+    public static string PinName(byte bit) => bit switch
     {
         0 => "Data0",
         1 => "Data1",

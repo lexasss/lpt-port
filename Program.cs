@@ -28,7 +28,7 @@ class Program
         if ((operation = ChooseOperation()) is null)
             return;
 
-        LoopPortOperation(port, (Operation)operation);
+        RunOperationThread(port, (Operation)operation);
     }
 
     // Functions
@@ -125,7 +125,7 @@ class Program
         return result;
     }
 
-    static void LoopPortOperation(Port port, Operation operation)
+    static void RunOperationThread(Port port, Operation operation)
     {
         var action = _actions[operation];
         if (action == null)
@@ -206,7 +206,7 @@ class Program
                 if (pinValues != currentPinValues)
                 {
                     Console.WriteLine($"=== Value 0x{currentPinValues:x4} (binary = 0x{port.ReadAll():x4}) on cycle {cycle} ===");
-                    for (int i = 0; i < 20; i++)
+                    for (byte i = 0; i < 20; i++)
                     {
                         var mask = 1 << i;
                         if ((pinValues & mask) != (currentPinValues & mask) || cycle == 0)
