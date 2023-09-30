@@ -2,13 +2,15 @@
 
 class Program
 {
-    enum Operation { ReadWholeRange, ReadPins, WriteFrom0To255 }
+    enum Operation { ReadWholeRange, ReadPins, WriteToData0To255, SetAllDataPins, ClearAllDataPins }
 
     static readonly Dictionary<Operation, Action<object?>> _actions = new()
     {
         { Operation.ReadWholeRange, ReadWholeRange },
         { Operation.ReadPins, ReadPins },
-        { Operation.WriteFrom0To255, WriteFrom0To255 },
+        { Operation.WriteToData0To255, WriteToData0To255 },
+        { Operation.SetAllDataPins, (o) => WriteToData(o, 0xFF) },
+        { Operation.ClearAllDataPins, (o) => WriteToData(o, 0) },
     };
 
     public static void Main()
@@ -140,9 +142,11 @@ class Program
 
         thread.Start(port);
 
-        Console.WriteLine("Press any key to exit . . .");
+        Console.WriteLine("Press ESC to exit . . .");
         Console.WriteLine("");
-        Console.ReadKey();
+
+        while (Console.ReadKey().Key != ConsoleKey.Escape)
+        { }
 
         thread.Interrupt();
         thread.Join();
@@ -235,7 +239,7 @@ class Program
         catch (ThreadInterruptedException) { }
     }
 
-    static void WriteFrom0To255(object? param)
+    static void WriteToData0To255(object? param)
     {
         if (param is not Port port)
             return;
@@ -255,6 +259,19 @@ class Program
             }
 
             Console.WriteLine("Done. Press any key to exit . . .");
+        }
+        catch (ThreadInterruptedException) { }
+    }
+
+    static void WriteToData(object? param, byte value)
+    {
+        if (param is not Port port)
+            return;
+
+        try
+        {
+            port.WriteData(value);
+            Thread.Sleep(500);
         }
         catch (ThreadInterruptedException) { }
     }
