@@ -2,15 +2,16 @@
 
 class Program
 {
-    enum Operation { ReadWholeRange, ReadPins, WriteToData0To255, SetAllDataPins, ClearAllDataPins }
+    enum Operation { ReadWholeRange, ReadPins, WriteToData0To255, SetAllDataPins, ClearAllDataPins, SetDataPin }
 
-    static readonly Dictionary<Operation, Action<object?>> _actions = new()
+    static readonly Dictionary<Operation, (Action<object?>, bool)> _actions = new()
     {
-        { Operation.ReadWholeRange, ReadWholeRange },
-        { Operation.ReadPins, ReadPins },
-        { Operation.WriteToData0To255, WriteToData0To255 },
-        { Operation.SetAllDataPins, (o) => WriteToData(o, 0xFF) },
-        { Operation.ClearAllDataPins, (o) => WriteToData(o, 0) },
+        { Operation.ReadWholeRange, (ReadWholeRange, false) },
+        { Operation.ReadPins, (ReadPins, false) },
+        { Operation.WriteToData0To255, (WriteToData0To255, false) },
+        { Operation.SetAllDataPins, ((o) => WriteToData(o, 0xFF), false) },
+        { Operation.ClearAllDataPins, ((o) => WriteToData(o, 0), false) },
+        { Operation.SetDataPin, (SetDataPin, true) },
     };
 
     public static void Main()
@@ -33,7 +34,7 @@ class Program
         RunOperationThread(port, (Operation)operation);
     }
 
-    // Functions
+    #region Procedure steps
 
     static bool IsInpOutAvailable()
     {
@@ -109,7 +110,7 @@ class Program
         do
         {
             var input = Console.ReadKey();
-            if (input.Key == ConsoleKey.Escape || input.Key == ConsoleKey.Enter)
+            if (input.Key == ConsoleKey.Escape)
             {
                 return -1;
             }
@@ -120,8 +121,8 @@ class Program
                 break;
             }
             Console.CursorLeft = 0;
-            Console.Write($"'{input.KeyChar}' is an invalid ID. ");
-            Console.WriteLine($"Please try again, or press ESC or ENTER to exit: ");
+            Console.Write($"'{input.KeyChar}' is an invalid value. ");
+            Console.WriteLine($"Please try again, or press ESC to exit: ");
         } while (true);
 
         return result;
@@ -129,7 +130,7 @@ class Program
 
     static void RunOperationThread(Port port, Operation operation)
     {
-        var action = _actions[operation];
+        var (action, isHandlingInput) = _actions[operation];
         if (action == null)
             return;
 
@@ -137,20 +138,24 @@ class Program
         Console.CursorLeft = 0;
         Console.WriteLine(" ");
         Console.WriteLine($"Executing '{operation}' operation on port {port.Name}");
-
-        var thread = new Thread(new ParameterizedThreadStart(action));
-
-        thread.Start(port);
-
         Console.WriteLine("Press ESC to exit . . .");
         Console.WriteLine("");
 
-        while (Console.ReadKey().Key != ConsoleKey.Escape)
-        { }
+        var thread = new Thread(new ParameterizedThreadStart(action));
+        thread.Start(port);
 
-        thread.Interrupt();
+        if (!isHandlingInput)
+        {
+            while (Console.ReadKey().Key != ConsoleKey.Escape)
+            { }
+
+            thread.Interrupt();
+        }
+
         thread.Join();
     }
+
+    #endregion
 
     #region Actions
 
@@ -257,8 +262,6 @@ class Program
                 if (++value > 255)
                     break;
             }
-
-            Console.WriteLine("Done. Press any key to exit . . .");
         }
         catch (ThreadInterruptedException) { }
     }
@@ -272,6 +275,42 @@ class Program
         {
             port.WriteData(value);
             Thread.Sleep(500);
+        }
+        catch (ThreadInterruptedException) { }
+    }
+
+    static void SetDataPin(object? param)
+    {
+        if (param is not Port port)
+            return;
+
+        try
+        {
+            while (Thread.CurrentThread.ThreadState == ThreadState.Running)
+            {
+                Console.Write("Choose pin (1-8): ");
+                int pin = ReadDigit(8);
+                if (pin < 0)
+                    break;
+
+                Console.Write("Choose value (1 = off, 2 = on): ");
+                int value = ReadDigit(2);
+                if (value < 0)
+                    break;
+
+                if (value == 1)
+                {
+                    port.WriteData((short)(1 << pin));
+                }
+                else
+                {
+                    var allPinsData = port.ReadData();
+                    port.WriteData((short)(allPinsData & ~(1 << pin)));
+                }
+
+                Console.WriteLine();
+                Thread.Sleep(200);
+            }
         }
         catch (ThreadInterruptedException) { }
     }
