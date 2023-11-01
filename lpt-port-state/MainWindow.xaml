@@ -6,13 +6,14 @@
         xmlns:local="clr-namespace:LptPortState"
         mc:Ignorable="d"
         Title="LPT state"
-        Height="480"
-        Width="443" Loaded="Window_Loaded">
+        Height="440"
+        Width="410"
+        Loaded="Window_Loaded">
     <Window.Resources>
         <Style TargetType="Ellipse">
-            <Setter Property="Width" Value="12"/>
-            <Setter Property="Height" Value="12"/>
-            <Setter Property="Fill" Value="Blue"/>
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Fill" Value="#dd2200"/>
             <Setter Property="Visibility" Value="Hidden"/>
         </Style>
     </Window.Resources>
@@ -29,17 +30,19 @@
             <ComboBox x:Name="cmbPorts"
                       MinWidth="120" SelectionChanged="cmbPorts_SelectionChanged"/>
         </WrapPanel>
-        <Image Grid.Row="1"
-               Source="/Assets/lpt.png"
+        <Grid Grid.Row="1"
+              Margin="8">
+            <Image Source="/Assets/lpt.png"
                VerticalAlignment="Top"
                HorizontalAlignment="Left"
                Stretch="None">
-            <Image.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform ScaleX="4" ScaleY="4"/>
-                </TransformGroup>
-            </Image.RenderTransform>
-        </Image>
-        <Canvas x:Name="cnvPins" Grid.Row="2"/>
+                <Image.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="4" ScaleY="4"/>
+                    </TransformGroup>
+                </Image.RenderTransform>
+            </Image>
+            <Canvas x:Name="cnvPins"/>
+        </Grid>
     </Grid>
 </Window>

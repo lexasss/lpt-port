@@ -3,7 +3,7 @@ using Port = LptPort.LptPort;
 
 class Program
 {
-    enum Operation { ReadWholeRange, ReadPins, WriteToData0To255, SetAllDataPins, ClearAllDataPins, SetDataPin }
+    enum Operation { ReadWholeRange, ReadPins, WriteToData0To255, SetAllDataPins, ClearAllDataPins, SetDataPin, SetControlPin }
 
     static readonly Dictionary<Operation, (Action<object?>, bool)> _actions = new()
     {
@@ -13,6 +13,7 @@ class Program
         { Operation.SetAllDataPins, ((o) => WriteToData(o, 0xFF), false) },
         { Operation.ClearAllDataPins, ((o) => WriteToData(o, 0), false) },
         { Operation.SetDataPin, (SetDataPin, true) },
+        { Operation.SetControlPin, (SetControlPin, true) },
     };
 
     public static void Main()
@@ -299,14 +300,51 @@ class Program
                 if (value < 0)
                     break;
 
+                var allPinsData = port.ReadData();
                 if (value == 1)
                 {
-                    port.WriteData((short)(1 << pin));
+                    port.WriteData((short)(allPinsData | (1 << pin)));
                 }
                 else
                 {
-                    var allPinsData = port.ReadData();
                     port.WriteData((short)(allPinsData & ~(1 << pin)));
+                }
+
+                Console.WriteLine();
+                Thread.Sleep(200);
+            }
+        }
+        catch (ThreadInterruptedException) { }
+    }
+
+    static void SetControlPin(object? param)
+    {
+        if (param is not Port port)
+            return;
+
+        try
+        {
+            while (Thread.CurrentThread.ThreadState == ThreadState.Running)
+            {
+                Console.WriteLine($"Pins: 1 - {Port.PinName(16)}, 2 - {Port.PinName(17)}, 3 - {Port.PinName(18)}, 4 - {Port.PinName(19)}");
+                Console.Write("Choose pin (1-4): ");
+                int pin = ReadDigit(4);
+                if (pin < 0)
+                    break;
+
+                Console.Write("Choose value (1 = off, 2 = on): ");
+                int value = ReadDigit(2);
+                if (value < 0)
+                    break;
+
+                var allPinsData = port.ReadControl();
+                if (value == 1)
+                {
+                    port.WriteControl((short)(allPinsData | (1 << pin)));
+                }
+                else
+                {
+                    port.WriteControl((short)(allPinsData & ~(1 << pin)));
                 }
 
                 Console.WriteLine();
