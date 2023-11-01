@@ -1,4 +1,5 @@
-﻿namespace LptPortSniffer;
+﻿namespace LptPortTool;
+using Port = LptPort.LptPort;
 
 class Program
 {

@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <RootNamespace>LptPortState</RootNamespace>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\lpt.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\lpt-port\lpt-port.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\lpt.png" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)InpOut\bin-x86\inpout32.dll&quot; &quot;$(TargetDir)&quot; /Y /I" />
+  </Target>
+
+</Project>

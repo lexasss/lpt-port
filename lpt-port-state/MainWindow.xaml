@@ -1,0 +1,45 @@
+﻿<Window x:Class="LptPortState.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LptPortState"
+        mc:Ignorable="d"
+        Title="LPT state"
+        Height="480"
+        Width="443" Loaded="Window_Loaded">
+    <Window.Resources>
+        <Style TargetType="Ellipse">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Fill" Value="Blue"/>
+            <Setter Property="Visibility" Value="Hidden"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <WrapPanel Grid.Row="0">
+            <Label Margin="0,0,24,0">
+                Port:
+            </Label>
+            <ComboBox x:Name="cmbPorts"
+                      MinWidth="120" SelectionChanged="cmbPorts_SelectionChanged"/>
+        </WrapPanel>
+        <Image Grid.Row="1"
+               Source="/Assets/lpt.png"
+               VerticalAlignment="Top"
+               HorizontalAlignment="Left"
+               Stretch="None">
+            <Image.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform ScaleX="4" ScaleY="4"/>
+                </TransformGroup>
+            </Image.RenderTransform>
+        </Image>
+        <Canvas x:Name="cnvPins" Grid.Row="2"/>
+    </Grid>
+</Window>

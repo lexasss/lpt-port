@@ -1,9 +1,9 @@
 ﻿using System.Management;
 using System.Runtime.InteropServices;
 
-namespace LptPortSniffer;
+namespace LptPort;
 
-internal class Port
+public class LptPort
 {
     public string Name { get; init; } = "";
     public int FromAddress { get; init; }
@@ -64,9 +64,9 @@ internal class Port
 
     #endregion
 
-    public static Port[] GetPorts()
+    public static LptPort[] GetPorts()
     {
-        var ports = new List<Port>();
+        var ports = new List<LptPort>();
         ManagementObjectSearcher lptPortSearcher;
         try
         {
@@ -147,7 +147,7 @@ internal class Port
                                 Console.WriteLine($"'StartingAddress' or 'EndingAddress' is not in {portResource.ClassPath}... Skipped.");
                                 continue;
                             }
-                            ports.Add(new Port() { Name = lptPort.Properties["Name"].Value.ToString() ?? "LPT", FromAddress = startAddress, ToAddress = endAddress });
+                            ports.Add(new LptPort() { Name = lptPort.Properties["Name"].Value.ToString() ?? "LPT", FromAddress = startAddress, ToAddress = endAddress });
                         }
                     }
                 }
