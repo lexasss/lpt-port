@@ -8,13 +8,15 @@
         Title="LPT state"
         Height="440"
         Width="410"
+        MinHeight="440"
+        MinWidth="410"
         Loaded="Window_Loaded">
     <Window.Resources>
         <Style TargetType="Ellipse">
             <Setter Property="Width" Value="14"/>
             <Setter Property="Height" Value="14"/>
-            <Setter Property="Fill" Value="#dd2200"/>
-            <Setter Property="Visibility" Value="Hidden"/>
+            <Setter Property="Fill" Value="#cc4400"/>
+            <Setter Property="Opacity" Value="0.1"/>
         </Style>
     </Window.Resources>
     <Grid>
@@ -23,13 +25,10 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <WrapPanel Grid.Row="0">
-            <Label Margin="0,0,24,0">
-                Port:
-            </Label>
-            <ComboBox x:Name="cmbPorts"
-                      MinWidth="120" SelectionChanged="cmbPorts_SelectionChanged"/>
-        </WrapPanel>
+        <ComboBox x:Name="cmbPorts" Grid.Row="0"
+                    HorizontalAlignment="Center"
+                    MinWidth="120"
+                    SelectionChanged="cmbPorts_SelectionChanged"/>
         <Grid Grid.Row="1"
               Margin="8">
             <Image Source="/Assets/lpt.png"

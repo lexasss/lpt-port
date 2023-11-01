@@ -265,7 +265,7 @@ class Program
         try
         {
             short value = 0;
-            Console.WriteLine("Writing to DATA bus from 0 to 255:");
+            Console.WriteLine("Writing 0 to 255 to DATA bus:");
             while (Thread.CurrentThread.ThreadState == ThreadState.Running)
             {
                 port.WriteData(value);
