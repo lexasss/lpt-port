@@ -3,7 +3,16 @@ using Port = LptPort.LptPort;
 
 class Program
 {
-    enum Operation { ReadWholeRange, ReadPins, WriteToData0To255, SetAllDataPins, ClearAllDataPins, SetDataPin, SetControlPin }
+    enum Operation {
+        ReadWholeRange,
+        ReadPins,
+        WriteToData0To255,
+        SetAllDataPins,
+        ClearAllDataPins,
+        SetAllControlPins,
+        ClearAllControlPins,
+        SetDataPin,
+        SetControlPin }
 
     static readonly Dictionary<Operation, (Action<object?>, bool)> _actions = new()
     {
@@ -12,6 +21,8 @@ class Program
         { Operation.WriteToData0To255, (WriteToData0To255, false) },
         { Operation.SetAllDataPins, ((o) => WriteToData(o, 0xFF), false) },
         { Operation.ClearAllDataPins, ((o) => WriteToData(o, 0), false) },
+        { Operation.SetAllControlPins, ((o) => WriteToControl(o, 0xFF), false) },
+        { Operation.ClearAllControlPins, ((o) => WriteToControl(o, 0), false) },
         { Operation.SetDataPin, (SetDataPin, true) },
         { Operation.SetControlPin, (SetControlPin, true) },
     };
@@ -276,6 +287,19 @@ class Program
         try
         {
             port.WriteData(value);
+            Thread.Sleep(500);
+        }
+        catch (ThreadInterruptedException) { }
+    }
+
+    static void WriteToControl(object? param, byte value)
+    {
+        if (param is not Port port)
+            return;
+
+        try
+        {
+            port.WriteControl(value);
             Thread.Sleep(500);
         }
         catch (ThreadInterruptedException) { }
