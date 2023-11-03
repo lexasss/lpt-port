@@ -19,10 +19,10 @@ class Program
         { Operation.ReadWholeRange, (ReadWholeRange, false) },
         { Operation.ReadPins, (ReadPins, false) },
         { Operation.WriteToData0To255, (WriteToData0To255, false) },
-        { Operation.SetAllDataPins, ((o) => WriteToData(o, 0xFF), false) },
-        { Operation.ClearAllDataPins, ((o) => WriteToData(o, 0), false) },
-        { Operation.SetAllControlPins, ((o) => WriteToControl(o, 0xFF), false) },
-        { Operation.ClearAllControlPins, ((o) => WriteToControl(o, 0), false) },
+        { Operation.SetAllDataPins, ((o) => WriteToData(o, 0xFF), true) },
+        { Operation.ClearAllDataPins, ((o) => WriteToData(o, 0), true) },
+        { Operation.SetAllControlPins, ((o) => WriteToControl(o, 0xFF), true) },
+        { Operation.ClearAllControlPins, ((o) => WriteToControl(o, 0), true) },
         { Operation.SetDataPin, (SetDataPin, true) },
         { Operation.SetControlPin, (SetControlPin, true) },
     };
@@ -40,11 +40,15 @@ class Program
         if ((port = ChoosePort(ports)) is null)
             return;
 
-        Operation? operation;
-        if ((operation = ChooseOperation()) is null)
-            return;
+        do
+        {
+            Operation? operation;
+            if ((operation = ChooseOperation()) is null)
+                return;
 
-        RunOperationThread(port, (Operation)operation);
+            RunOperationThread(port, (Operation)operation);
+            
+        } while (true);
     }
 
     #region Procedure steps
@@ -102,7 +106,7 @@ class Program
     static Operation? ChooseOperation()
     {
         Console.WriteLine("");
-        Console.WriteLine($"Actions available:");
+        Console.WriteLine("Actions available:");
 
         int i = 1;
         foreach (var kv in _actions)
@@ -151,7 +155,8 @@ class Program
         Console.CursorLeft = 0;
         Console.WriteLine(" ");
         Console.WriteLine($"Executing '{operation}' operation on port {port.Name}");
-        Console.WriteLine("Press ESC to exit . . .");
+        if (!isHandlingInput)
+            Console.WriteLine("Press ESC to exit . . .");
         Console.WriteLine("");
 
         var thread = new Thread(new ParameterizedThreadStart(action));
@@ -163,6 +168,7 @@ class Program
             { }
 
             thread.Interrupt();
+            Console.WriteLine("\nA");
         }
 
         thread.Join();
