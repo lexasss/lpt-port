@@ -64,13 +64,18 @@ public class LptPort
 
     #endregion
 
+    public static string VirtualPortClassGuid => "{4d36e978-e325-11ce-bfc1-08002be10318}";
+
     public static LptPort[] GetPorts()
     {
         var ports = new List<LptPort>();
         ManagementObjectSearcher lptPortSearcher;
         try
         {
-            lptPortSearcher = new ManagementObjectSearcher("Select * From Win32_ParallelPort");
+            //lptPortSearcher = new ManagementObjectSearcher("Select * From Win32_ParallelPort");
+            lptPortSearcher = new ManagementObjectSearcher(
+                "root\\cimv2",
+                $"SELECT * FROM Win32_PnPEntity WHERE ClassGuid=\"{VirtualPortClassGuid}\"");
         }
         catch (Exception ex)
         {
@@ -78,8 +83,12 @@ public class LptPort
             return ports.ToArray();
         }
 
-        foreach (var lptPort in lptPortSearcher.Get())
+        var allPorts = lptPortSearcher.Get();
+        foreach (var lptPort in allPorts)
         {
+            if (!lptPort.Properties["Name"].Value.ToString()?.Contains("LPT") ?? false)
+                continue;
+
             ManagementObjectSearcher pnpSearcher;
             try
             {
@@ -148,8 +157,12 @@ public class LptPort
                                 continue;
                             }
                             ports.Add(new LptPort() { Name = lptPort.Properties["Name"].Value.ToString() ?? "LPT", FromAddress = startAddress, ToAddress = endAddress });
+
+                            break;
                         }
                     }
+
+                    break;
                 }
             }
         }
