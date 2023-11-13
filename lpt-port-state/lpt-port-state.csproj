@@ -6,7 +6,7 @@
     <RootNamespace>LptPortState</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(SolutionDir)InpOut\bin-x86\inpout32.dll&quot; &quot;$(TargetDir)&quot; /Y /I" />
+    <Exec Command="xcopy &quot;$(SolutionDir)InpOut\bin-x86\inpout32.dll&quot; &quot;$(TargetDir)&quot; /Y /I&#xD;&#xA;xcopy &quot;$(SolutionDir)InpOut\bin-x64\inpoutx64.dll&quot; &quot;$(TargetDir)&quot; /Y /I" />
   </Target>
 
 </Project>

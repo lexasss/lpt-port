@@ -10,9 +10,6 @@ using Port = LptPort.LptPort;
 
 namespace LptPortState
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()

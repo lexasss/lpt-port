@@ -39,30 +39,33 @@ public class LptPort
 
     #region Static IO
 
-    [DllImport("inpout32.dll", EntryPoint = "IsInpOutDriverOpen")]
+    const string Platform = "x64";
+    //const string Platform = "32";
+
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "IsInpOutDriverOpen")]
     public static extern uint IsAvailable();
 
-    [DllImport("inpout32.dll", EntryPoint = "Inp32")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "Inp32")]
     public static extern short Read(int address);
-    [DllImport("inpout32.dll", EntryPoint = "Out32")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "Out32")]
     public static extern void Write(int adress, short value);
 
-    [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUchar")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "DlPortReadPortUchar")]
     public static extern byte ReadUInt8(short PortAddress);
-    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUchar")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "DlPortWritePortUchar")]
     public static extern void WriteUint8(short PortAddress, byte Data);
 
-    [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUshort")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "DlPortReadPortUshort")]
     public static extern ushort ReadUInt16(short PortAddress);
-    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUshort")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "DlPortWritePortUshort")]
     public static extern void WriteUint16(short PortAddress, ushort Data);
 
-    [DllImport("inpout32.dll", EntryPoint = "DlPortWritePortUlong")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "DlPortWritePortUlong")]
     public static extern void WriteUInt32(int PortAddress, uint Data);
-    [DllImport("inpout32.dll", EntryPoint = "DlPortReadPortUlong")]
+    [DllImport($"inpout{Platform}.dll", EntryPoint = "DlPortReadPortUlong")]
     public static extern uint ReadUInt32(int PortAddress);
 
-    #endregion
+#endregion
 
     public static string VirtualPortClassGuid => "{4d36e978-e325-11ce-bfc1-08002be10318}";
 
